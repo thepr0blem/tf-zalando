@@ -179,7 +179,7 @@ def plot_classes_count(y, label_names):
 ![Classes](https://github.com/thepr0blem/tf-zalando/blob/master/images/classes_count.PNG) 
 
 
-Defining function to plotting randomly selected, exemplary pictures:
+Defining function to plot randomly selected, exemplary pictures:
 ```python
 def plot_samples(X, y, labels):
     """Display 3x3 plot with sample images from X, y dataset.
