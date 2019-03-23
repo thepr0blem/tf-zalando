@@ -9,6 +9,8 @@ The purpose of this project is to develop convolutional neural network for items
 2. Data loading, exploring and preprocessing
 3. CNN model architecture selection, initialization and training
 4. Model evaluation
+5. Real world test 
+6. Summary
 
 ## 1. Introduction 
 
@@ -347,7 +349,6 @@ def train_and_save_model():
         test_loss = []
         train_accuracy = []
         test_accuracy = []
-        summary_writer = tf.summary.FileWriter('./output', sess.graph)
 
         for i in range(epochs):
             for batch in range(len(X_train)//BATCH_SIZE):
@@ -370,7 +371,6 @@ def train_and_save_model():
             print("Val Accuracy: {:.5f}".format(test_acc))
 
         saver.save(sess, model_path + model_name)
-        summary_writer.close()
         print("Model saved.")
 
         return train_loss, test_loss, train_accuracy, test_accuracy
@@ -406,6 +406,7 @@ def plot_training_history(train_loss, test_loss, train_accuracy, test_accuracy):
 
 <img src="https://github.com/thepr0blem/tf-zalando/blob/master/images/loss.PNG" width="400">
 
+As we can see validation accuracy stopped improving around epoch ~30. 
 
 ## 4. Model evaluation
 ### 4.1 Load model and evaluate on test data set 
@@ -450,19 +451,20 @@ Leveraging ```scikit-learn``` modules we can easily build confusion matrix, whic
 
 First, we need to classify test examples and pass the predictions to ```confusion_matrix``` together with true labels.  
 ```python
-y_pred = pred.predict(X_test_cnn)
+y_pred = predict_arr(X_test)
+y_test_cat = np.argmax(y_test, axis=1)
 ```
 ```python
-conf_mat = confusion_matrix(y_test_cnn, y_pred)
+conf_mat = confusion_matrix(y_test_cat, y_pred)
 ```
+
 Next, short function for plotting the matrix will be required. I used ```seaborn.heatmap```
 
 ```python
 def plot_conf_mat(conf_mat, label_list, normalize=False):
     """Plots confusion matrix"""
-    
-    if normalize:
 
+    if normalize:
         conf_mat = conf_mat.astype(float) / conf_mat.sum(axis=1)[:, np.newaxis]
 
     fmt = '.2f' if normalize else 'd'
@@ -476,14 +478,14 @@ def plot_conf_mat(conf_mat, label_list, normalize=False):
 ```
 Labels list: 
 ```python
-labels_list = [labels[i] for i in range(36)]
+labels_list = [labels_dict[i] for i in labels_dict]
 ```
 Plotting: 
 ```python
-vis.plot_conf_mat(conf_mat, labels_list, normalize=False)
+plot_conf_mat(conf_mat, labels_list, normalize=False)
 ```
 
-IMG CONF MATRIX 
+![Confusion matrix](https://github.com/thepr0blem/tf-zalando/blob/master/images/conf_mat.png) 
 
 ### 4.3 Display exemplary mistakes 
 
@@ -504,15 +506,19 @@ def display_errors(X, y_true, y_pred, labels):
     for i in range(3):
         for j in range(3):
             n = rd.randint(0, len(X_errors))
-            ax[i, j].imshow(X_errors[n].reshape(56, 56), cmap='gray')
+            ax[i, j].imshow(X_errors[n].reshape(IMG_SIZE, IMG_SIZE), cmap='gray')
             ax[i, j].set_title("Predicted label :{}\nTrue label :{}"
-                               .format(labels[y_pred_errors[n][0]], labels[y_true_errors[n][0]]))
+                               .format(labels[y_pred_errors[n]], labels[y_true_errors[n]]))
 ```
 ```python
-vis.display_errors(X_test_cnn, y_test_cnn, y_pred, labels)
+display_errors(X_test, y_test_cat, y_pred, labels_dict)
 ```
 
-SAMPLE ERRORS
+![Exemplary errors](https://github.com/thepr0blem/tf-zalando/blob/master/images/exemplary_errors.png) 
+
+## 5. Real world test
+
+What would be our model if we could not use it in a real world environment. 
 
 ## Summary 
 
