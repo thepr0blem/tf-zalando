@@ -13,7 +13,7 @@ def predict(photo=samp_photo):
             Plots processed photo as inputted to CNN and predicted class
         """
     test_real = labels_dict[predict_arr(load_real_img(img=photo))[0]]
-    show_img(samp_photo, processed=True, real=True, title=test_real)
+    show_img(photo, processed=True, real=True, title=test_real)
 
 
 if __name__ == "__main__":
