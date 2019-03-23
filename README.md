@@ -104,7 +104,7 @@ def predict(photo=samp_photo):
 
 ## 2. Loading and exploring the data
 
-### 2.1 Loading the data
+### 2.1 Loading and preprocessing the data
 ```python
 def load_and_process_data():
 
@@ -176,7 +176,7 @@ def plot_classes_count(y, label_names):
     count_plot.set_xticklabels(count_plot.get_xticklabels(), rotation=45, fontsize=9)
 ```
 
-IMG CLASSES COUNT
+![Classes](https://github.com/thepr0blem/tf-zalando/blob/master/images/classes_count.PNG) 
 
 
 Defining function to plotting randomly selected, exemplary pictures:
@@ -185,177 +185,198 @@ def plot_samples(X, y, labels):
     """Display 3x3 plot with sample images from X, y dataset.
 
     Args:
-        X: (i x j) array with i examples (each of them j features)
-        y: (i x 1) vector with labels
-        n: dict with {class: label} structure
-
-    Returns:
-        Displays n-th example and returns class label.
+        X: (i x IMG_SIZE x IMG_SIZE x 1) array with i examples
+        y: (i x 10) vector with labels
+        labels: dict with {class: label} structure
     """
-    f, plarr = plt.subplots(3, 3)
+    f, pl_arr = plt.subplots(3, 3)
 
     for i in range(3):
         for j in range(3):
             n = rd.randint(0, X.shape[0])
-            plarr[i, j].imshow(X[n].reshape(56, 56), cmap='gray')
-            plarr[i, j].axis('off')
-            plarr[i, j].set_title(labels[y[n][0]])
-```
-```
-vis.plot_samples(X, y)
+            pl_arr[i, j].imshow(X[n].reshape(IMG_SIZE, IMG_SIZE), cmap='gray')
+            pl_arr[i, j].axis('off')
+            pl_arr[i, j].set_title(labels[np.argmax(y[n])])
 ```
 
-IMG PLOT SAMPLES
+![Samples](https://github.com/thepr0blem/tf-zalando/blob/master/images/plot_samples.PNG) 
 
-### 2.3 Preprocessing the data
-#### 2.3.1 Reshaping 
-
-```python
-n_cols = X.shape[1]
-img_size = int(np.sqrt(n_cols))
-no_of_classes = len(np.unique(y, return_counts=True)[0])
-
-X_cnn = X.reshape(X.shape[0], img_size, img_size, 1)
-```
-
-#### 2.3.2 Split into training and testing set 
-The data has been split into two data sets in 80:20 proportion.  
-```python
-X_train_cnn, X_test_cnn, y_train_cnn, y_test_cnn = train_test_split(X_cnn, y, test_size=0.2, random_state=42)
-```
-
-#### 2.3.3 Label encoding 
-
-```python
-y_train_cat_cnn = to_categorical(y_train_cnn)
-y_test_cat_cnn = to_categorical(y_test_cnn)
-```
       
 ## 3. Building CNN 
 ### 3.1 Defining CNN architecture
 
-To implement convolutional neural network I used **Keras** API (which is user friendly framework built on top of Tensorflow). I used Sequential model which is ordered hierarchy of layers. The architecture has been chosen based on research and articles listed in references ([1] in this case). 
+To implement convolutional neural network I used **TensorFlow**.
 
-Alternative approach that could be taken: adding additional functionality to ```run_random_search()``` function which would consider different numbers of sets of layers. 
-
-Layers for final CNN are ordered as follows (selection of hyperparameters is presented in the following steps):
+Layers for final CNN are ordered as follows:
 
   - **Conv2D** - conv. layer 
-    - filters - 40
-    - kernel_size - 5 x 5
+    - filters - 32
+    - kernel_size - 3 x 3
     - activation - 'relu' 
-    - input shape - 4D tensor - (n, 56, 56, 1), where (number of examples, img_size, img_size, no_of_channels) 
+    - input shape - 4D tensor - (n, 28, 28, 1) - (number of examples, img_size, img_size, no_of_channels) 
     - padding - 'same'
+  - **Max_Pooling** - subsampling layer
+    - pool_size - (2, 2)
+  - **Dropout** - regularization layer
+    - dropout_percentage - 20%
+
   - **Conv2D** - conv. layer 
-    - filters - 40
-    - kernel_size - 5 x 5
+    - filters - 64
+    - kernel_size - 3 x 3
     - activation - 'relu' 
     - padding - 'same'
   - **Max_Pooling** - subsampling layer
-    - pool_size - (3, 3)
+    - pool_size - (2, 2)
   - **Dropout** - regularization layer
-    - dropout_percentage - 30%
-
-  - **Conv2D** - conv. layer 
-    - filters - 40
-    - kernel_size - 5 x 5
-    - activation - 'relu' 
-    - padding - 'same'
-  - **Conv2D** - conv. layer 
-    - filters - 40
-    - kernel_size - 5 x 5
+    - dropout_percentage - 20%
+ 
+   - **Conv2D** - conv. layer 
+    - filters - 128
+    - kernel_size - 3 x 3
     - activation - 'relu' 
     - padding - 'same'
   - **Max_Pooling** - subsampling layer
-    - pool_size - (3, 3)
+    - pool_size - (2, 2)
   - **Dropout** - regularization layer
-    - dropout_percentage - 30%
+    - dropout_percentage - 20%
  
   - **Flatten** - flattening input for dense layers input
   - **Dense** - regular dense layer
-    - number of neurons - 512
+    - number of neurons - 128
     - activation - 'relu'
   - **Dropout** - regularization layer
-    - dropout_percentage - 30%
+    - dropout_percentage - 20%
    
   - **Dense** - final layer
     - units - number of classes
     - activation - 'softmax'
     
 ```python
-def create_model(X, y, it=1, no_of_filters=32, kern_size=3,
-                 max_p_size=3, drop_perc_conv=0.3, drop_perc_dense=0.2,
-                 dens_size=128, val_split_perc=0.1, no_of_epochs=5,
-                 optimizer="adam", random_search=False, batch_size=64):
-    """Creates an architecture, train and saves CNN model.
+def conv2d(x, W, b, strides=1):
 
-    Returns:
-        Dictionary with training report history.
-    """
+    x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
+    x = tf.nn.bias_add(x, b)
 
-    y_train_cat = to_categorical(y)
+    return tf.nn.relu(x)
+```
+```python
+def maxpool2d(x, k=2):
 
-    model = Sequential()
+    return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME')
+```
+```python
+def dropout(x, rate=0.25, is_training=True):
 
-    model.add(Conv2D(no_of_filters,
-                     kernel_size=(kern_size, kern_size),
-                     activation='relu',
-                     input_shape=(56, 56, 1),
-                     padding='same'))
+    return tf.layers.dropout(x, rate=rate, training=is_training)
+```
+```python
+def conv_net(x, weights, biases, is_train_mode):
 
-    model.add(Conv2D(no_of_filters,
-                     kernel_size=(kern_size, kern_size),
-                     activation='relu',
-                     padding='same'))
-    model.add(MaxPooling2D((max_p_size, max_p_size)))
-    model.add(Dropout(drop_perc_conv))
+    conv1 = conv2d(x, weights['w_conv1'], biases['b_conv1'])
+    conv1 = maxpool2d(conv1, k=2)
+    conv1 = dropout(conv1, rate=DROPOUT, is_training=is_train_mode)
 
-    model.add(Conv2D(no_of_filters,
-                     kernel_size=(kern_size, kern_size),
-                     activation='relu',
-                     padding='same'))
-    model.add(Conv2D(no_of_filters,
-                     kernel_size=(kern_size, kern_size),
-                     activation='relu',
-                     padding='same'))
-    model.add(MaxPooling2D((max_p_size, max_p_size)))
-    model.add(Dropout(drop_perc_conv))
+    conv2 = conv2d(conv1, weights['w_conv2'], biases['b_conv2'])
+    conv2 = maxpool2d(conv2, k=2)
+    conv2 = dropout(conv2, rate=DROPOUT, is_training=is_train_mode)
 
-    model.add(Flatten())
+    conv3 = conv2d(conv2, weights['w_conv3'], biases['b_conv3'])
+    conv3 = maxpool2d(conv3, k=2)
+    conv3 = dropout(conv3, rate=DROPOUT, is_training=is_train_mode)
 
-    model.add(Dense(dens_size, activation='relu'))
-    model.add(Dropout(drop_perc_dense))
+    fc1 = tf.reshape(conv3, [-1, weights['w_dense'].get_shape().as_list()[0]])
+    fc1 = tf.add(tf.matmul(fc1, weights['w_dense']), biases['b_dense'])
+    fc1 = tf.nn.relu(fc1)
+    fc1 = dropout(fc1, rate=DROPOUT, is_training=is_train_mode)
 
-    model.add(Dense(36, activation='softmax'))
+    out = tf.add(tf.matmul(fc1, weights['w_out']), biases['b_out'])
 
-    model.compile(optimizer=optimizer,
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
+    return out
+```
+```python
+def build_model():
 
-    early_stopping_monitor = EarlyStopping(patience=5)
-    rlrop = ReduceLROnPlateau(monitor='val_acc', factor=0.5, 
-                              patience=3, verbose=1, min_lr=0.00001)
+    inputs = tf.placeholder(dtype=tf.float32, shape=[None, 28, 28, 1])
+    targets = tf.placeholder(dtype=tf.float32, shape=[None, N_CLASSES])
 
-    history = model.fit(X,
-                        y_train_cat,
-                        validation_split=val_split_perc,
-                        epochs=no_of_epochs,
-                        callbacks=[early_stopping_monitor, rlrop],
-                        batch_size=batch_size)
+    is_train_mode = tf.placeholder_with_default(True, shape=())
 
-    history_dict = history.history
+    weights = {
+        'w_conv1': tf.get_variable('W0', shape=(3, 3, 1, 32), initializer=tf.contrib.layers.xavier_initializer()),
+        'w_conv2': tf.get_variable('W1', shape=(3, 3, 32, 64), initializer=tf.contrib.layers.xavier_initializer()),
+        'w_conv3': tf.get_variable('W2', shape=(3, 3, 64, 128), initializer=tf.contrib.layers.xavier_initializer()),
+        'w_dense': tf.get_variable('W3', shape=(4 * 4 * 128, 128), initializer=tf.contrib.layers.xavier_initializer()),
+        'w_out': tf.get_variable('W6', shape=(128, N_CLASSES), initializer=tf.contrib.layers.xavier_initializer())
 
-    if random_search:
+    }
+    biases = {
+        'b_conv1': tf.get_variable('B0', shape=(32), initializer=tf.contrib.layers.xavier_initializer()),
+        'b_conv2': tf.get_variable('B1', shape=(64), initializer=tf.contrib.layers.xavier_initializer()),
+        'b_conv3': tf.get_variable('B2', shape=(128), initializer=tf.contrib.layers.xavier_initializer()),
+        'b_dense': tf.get_variable('B3', shape=(128), initializer=tf.contrib.layers.xavier_initializer()),
+        'b_out': tf.get_variable('B4', shape=(10), initializer=tf.contrib.layers.xavier_initializer())
 
-        np.save(r"./models/random_search/hist/history_dict_{}.npy".format(it), history_dict)
-        model.save(r"./models/random_search/models/CNN_{}.h5".format(it))
+    }
 
-    else:
+    saver = tf.train.Saver()
 
-        np.save(r"./logs/history_dict_{}.npy".format(it), history_dict)
-        model.save(r"./models/CNN_FF_{}.h5".format(it))
+    pred = conv_net(inputs, weights, biases, is_train_mode)
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=targets))
 
-    return history_dict
+    return inputs, targets, pred, cost, saver, is_train_mode
+```
+```python
+
+def train_and_save_model():
+
+    inputs, targets, pred, cost, saver, is_train_mode = build_model()
+
+    optimizer = tf.train.AdamOptimizer(learning_rate=LR).minimize(cost)
+
+    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(targets, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    init = tf.global_variables_initializer()
+
+    epochs = 50
+
+    with tf.Session() as sess:
+        sess.run(init)
+        print("Training started.")
+        train_loss = []
+        test_loss = []
+        train_accuracy = []
+        test_accuracy = []
+        summary_writer = tf.summary.FileWriter('./output', sess.graph)
+
+        for i in range(epochs):
+            for batch in range(len(X_train)//BATCH_SIZE):
+                batch_x = X_train[batch * BATCH_SIZE:min((batch + 1) * BATCH_SIZE, len(X_train))]
+                batch_y = y_train[batch * BATCH_SIZE:min((batch + 1) * BATCH_SIZE, len(y_train))]
+
+                sess.run(optimizer, feed_dict={inputs: batch_x, targets: batch_y})
+
+                loss, acc = sess.run([cost, accuracy], feed_dict={inputs: batch_x, targets: batch_y})
+
+            print("Iter " + str(i + 1) + ", Loss= {:.6f}".format(loss) + ", Train Acc= {:.5f}".format(acc))
+            print("Optimization for Iter {} Finished!".format(i + 1))
+
+            test_acc, valid_loss = sess.run([accuracy, cost], feed_dict={inputs: X_val, targets: y_val, is_train_mode: False})
+
+            train_loss.append(loss)
+            test_loss.append(valid_loss)
+            train_accuracy.append(acc)
+            test_accuracy.append(test_acc)
+            print("Val Accuracy: {:.5f}".format(test_acc))
+
+        saver.save(sess, model_path + model_name)
+        summary_writer.close()
+        print("Model saved.")
+
+        return train_loss, test_loss, train_accuracy, test_accuracy
+```
+```python
+train_loss, test_loss, train_accuracy, test_accuracy = train_and_save_model()
 ```
 
 ## 4. Model evaluation
