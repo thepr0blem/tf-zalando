@@ -106,30 +106,74 @@ def predict(photo=samp_photo):
 
 ### 2.1 Loading the data
 ```python
-data_dir = r'./data/train_fix.pkl'
+def load_and_process_data():
 
-with open(data_dir, 'rb') as f:
-    data = pickle.load(f)
+    # Load data from csv file
+    df_train = pd.read_csv(path_train)
+    df_test = pd.read_csv(path_test)
 
-X, y = data
+    # Extracting images and labels
+    X = df_train.iloc[:, 1:785].values / 255.0
+    y = df_train.iloc[:, 0].values
+
+    # Split on training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1, random_state=42)
+
+    # Reshaping training set to 4-D array required to CNN input
+    X_train = np.array(X_train.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
+
+    # One hot encoding of training labels
+    y_train = np.array(tf.keras.utils.to_categorical(y_train), dtype='f')
+
+    # Reshaping validation set to 4-D array required to CNN input
+    X_val = np.array(X_val.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
+
+    # One hot encoding of validation labels
+    y_val = np.array(tf.keras.utils.to_categorical(y_val), dtype='f')
+
+    # Extracting images and labels from testing data set 
+    X_test = df_test.iloc[:, 1:785].values / 255.0
+    y_test = df_test.iloc[:, 0].values
+    
+    # Reshaping testing set to 4-D array required to CNN input
+    X_test = np.array(X_test.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
+
+    # One hot encoding of validation test set labels
+    y_test = np.array(tf.keras.utils.to_categorical(y_test))
+
+    return X_train, y_train, X_test, y_test, X_val, y_val
 ```
+```python
+X_train, y_train, X_test, y_test, X_val, y_val = load_and_process_data()
+```  
 Label dictionary 
 ```python
-labels = {0: "6", 1: "P", 2: "O", 3: "V", 4: "W", 5: "3", 6: "A", 
-          7: "8", 8: "T", 9: "I", 10: "0", 11: "9", 12: "H", 13: "R", 
-          14: "N", 15: "7", 16: "K", 17: "L", 18: "G", 19: "4", 20: "Y", 
-          21: "C", 22: "E", 23: "J", 24: "5", 25: "1", 26: "S", 27: "2", 
-          28: "F", 29: "Z", 31: "Q", 32: "M", 33: "B", 34: "D", 35: "U"}
+labels_dict = {0: "T-shirt_top",
+               1: "Trouser",
+               2: "Pullover",
+               3: "Dress",
+               4: "Coat",
+               5: "Sandal",
+               6: "Shirt",
+               7: "Sneaker",
+               8: "Bag",
+               9: "Ankle_boot"}
 ```  
 ### 2.2 Exploring data - samples
 Plotting classes distribution
 ```python
-y_classes = sorted([labels[i] for i in y.reshape(y.shape[0], )])
+def plot_classes_count(y, label_names):
+    """Plots histogram with data set classes count.
 
-sns.set(style="darkgrid")
-count_plot = sns.countplot(y_classes, palette="Blues_d")
+    Args:
+        y: (i x 10) vector with labels, i - number of examples
+        label_names: dict with {class: label} structure
+    """
+    y_classes = [label_names[np.argmax(i)] for i in y]
 
-plt.show()
+    sns.set(style="darkgrid")
+    count_plot = sns.countplot(y_classes, palette="Blues_d")
+    count_plot.set_xticklabels(count_plot.get_xticklabels(), rotation=45, fontsize=9)
 ```
 
 IMG CLASSES COUNT
