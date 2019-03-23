@@ -2,7 +2,7 @@ UNDER CONSTRUCTION
 
 # CNN Implementation using TensorFlow
 
-The purpose of this project is to develop convolutional neural network for written characters classification. 
+The purpose of this project is to develop convolutional neural network for items of clothing (fashion-MNIST dataset) classification. 
 
 ### Content of this document 
 1. Introduction
@@ -15,7 +15,7 @@ The purpose of this project is to develop convolutional neural network for writt
 ### 1.1 Technologies and techniques used: 
 
 #### Model architecture 
-```Keras``` library (framework based on ```Tensorflow```) 
+```Tensorflow```
 
 #### Validation:
 Tools provided in ```scikit-learn``` library:
@@ -25,94 +25,81 @@ Tools provided in ```scikit-learn``` library:
 #### Techniques for accuracy improvement:
 Estimated accuracy of the classifier: 95.2%. Based on model performance calculated from testing set accuracy. 
 Techniques: 
-- regularization (via Dropout) 
-- hyperparameter tuning (via Random Search) 
-- early stopping 
-- learning rate reduction (via ReduceLROnPlateau) 
-- gradient descent optimization ("adam", "adamax", "nadam", "RMSProp")
-- image augmentation (rotation and shift) - tested, but not used - to perform augmentation please run ```./src/augmentation.py``` script
+- regularization (via Dropout)  
+- gradient descent optimization (Adam Optimizer) 
 
 ### 1.2 Project structure 
 
 ```
-├── archive                 # Old models 
-├── data                    # Data sets
-├── logs                    # Training history logs 
-├── models                  # Trained models 
-├── pics                    # Pictures/visualizations 
-├── src                     # Source files 
-├── workflow.py             # Code for workflow as presented in README
-├── predict.py              # Function for new data classification 
-├── requirments.txt         # Required libraries
+├── models                              # Trained models 
+├── images                              # Pictures/visualizations 
+├── main.py                             # Code for workflow as presented in README
+├── predict_func.py                     # real image classification
+├── image_process_and_plots.py          # image processing and plotting charts
+├── load_data.py                        # loading data
+├── global_vars.py                      # global variables
+├── requirments.txt                     # Required libraries
 └── README.md                 
 ```
 
 ### 1.3 Dataset overview
 
-**NOTE:** In the original data set there were 36 classes and one of them (class #30) had only one example.
-          This class was overlapping with class #14 (both were letter "N"), single example was renamed #30 -> #14. Data set with this    change was saved as ```train_fix.pkl```
-
 Observations: 
-- training set is provided in form of numpy arrays with 3,136 columns (with pixel values) and one additional vector with class labels
-- training dataset consist of 30,134 examples of written characters divided into 35 classes - 10 digits and 25 letters
-- the characters are centered and aligned in terms of the size
-- the classes are not in order (letters and digits are mixed) 
-- there is no data/class for letter "X" 
-- each example is a 56x56 image unfolded to 1x3136 vector (data need to be reshaped before feeding into CNN model) 
-- pixel values are binary (0 - black / 1 - white) 
+- training set is provided in form of dataframe with 784 columns (with pixel values) and one additional column with class labels
+- training dataset consist of 60,000 examples clothing pictures divided into 10 classes
+- the elements of clothing are centered and aligned in terms of the size
+- each example is a 28x28 image unfolded to 1x784 vector (data need to be reshaped before feeding into CNN model) 
+- pixel values are in gray scale of 0-255 
 
 ### 1.4 How to USE
 
 Required technologies are listed in ```requirments.txt``` file.
 
-#### 1.4.1 ```workflow.py```
+#### 1.4.1 ```main.py```
 
-To go through all te steps described in this document please use ```workflow.py``` script 
+To go through all te steps described in this document please use ```main.py``` script 
 
 Imports used in the script with all dependencies 
 
 ```python
+import tensorflow as tf
 import numpy as np
-import pickle
-import seaborn as sns
 import random as rd
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from skimage import io, transform, util
+from sklearn.model_selection import train_test_split
 
-from keras import Sequential
-from keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from keras.utils import to_categorical
-from keras.models import load_model
+from load_data import load_and_process_data
+from img_process_and_plots import plot_training_history
+from img_process_and_plots import plot_conf_mat, display_errors, plot_samples
+from global_vars import *
 
-from src import modelling as mod
-from src import visualization as vis
-import predict as pred
 ```
 
-#### 1.4.2 ```predict.py```
+#### 1.4.2 ```predict_func.py```
 
-To leverage already trained model to make your own prediction, use ```predict.py``` 
+To leverage already trained model to make your own prediction, use ```predict_func.py``` 
 
 ```python
-def predict(input_data):
-    """This functions classifies given input
+from main import predict_arr
 
-    Args:
-        input_data: (n x 3136) array, where n - # of examples
+from img_process_and_plots import show_img, load_real_img
+from global_vars import *
 
-    Returns:
-        output_data: (n x 1) array with class labels
-    """
-    model_in = load_model(r"./models/CNN_FF_3.h5")
+def predict(photo=samp_photo):
+    """This functions classifies and displays given image
 
-    prediction = model_in.predict(input_data.reshape(input_data.shape[0], 56, 56, 1))
-
-    output_data = prediction.argmax(axis=1).reshape(len(prediction), 1)
-
-    return output_data
+        Args:
+            photo: string with path to photo for classification
+        Returns:
+            Plots processed photo as inputted to CNN and predicted class
+        """
+    test_real = labels_dict[predict_arr(load_real_img(img=photo))[0]]
+    show_img(samp_photo, processed=True, real=True, title=test_real)
 ```
 
 ## 2. Loading and exploring the data
