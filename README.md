@@ -580,6 +580,9 @@ Voilà! It worked!
 
 ### References 
 [1] https://www.kaggle.com/zalando-research/fashionmnist
+
 [2] https://pythonprogramming.net/cnn-tensorflow-convolutional-nerual-network-machine-learning-tutorial/
+
 [3] https://www.kaggle.com/gpreda/cnn-with-tensorflow-keras-for-fashion-mnist
+
 
