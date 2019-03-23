@@ -103,6 +103,26 @@ def predict(photo=samp_photo):
     test_real = labels_dict[predict_arr(load_real_img(img=photo))[0]]
     show_img(photo, processed=True, real=True, title=test_real)
 ```
+#### 1.4.3 ```global_vars.py```
+
+Global variables and settings are stored in ```global_vars.py```.
+
+```python
+IMG_SIZE = 28
+IMG_CHANNELS = 1
+N_CLASSES = 10
+BATCH_SIZE = 128
+LR = 1e-3   # Learning rate 
+DROPOUT = 0.2
+
+model_path = r"./model/"
+model_name = "final"
+
+path_train = r"./data/fashion-mnist_train.csv"
+path_test = r"./data/fashion-mnist_test.csv"
+
+samp_photo = r"./images/sample_photo.jpg"
+```
 
 ## 2. Loading and exploring the data
 
