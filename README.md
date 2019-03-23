@@ -516,19 +516,70 @@ display_errors(X_test, y_test_cat, y_pred, labels_dict)
 
 ## 5. Real world test
 
-What would be our model if we could not use it in a real world environment. 
+What would be our model if we could not use it in a real world environment. I decided to test the model using one of my good old levi's sneakers. Sample photo: 
 
-## Summary 
+<img src="https://github.com/thepr0blem/tf-zalando/blob/master/images/sample_photo.jpg" width="400">
 
-- estimated model accuracy - 95.2% 
-- based on insightful view presented in confusion matrix, we can conclude that the model misclassifies characters with similar shape Examples:  
-  - "o" vs "0" - 78/82 examples of "0" classified as "o"
-  - "i" vs "1" - 55/60 examples of "i" classified as "1"
-  - "z' vs "2" - 17x confused with each other
-  - "v" vs "u" - 14x confused with each other
-- errors made by classifier are easier to understand if we take a look at exemplary errors in section 4.3. Some of those probably could be also misclassified by human eye (example "U" vs "O" 
-- during the development process data augmentation (via small 10 degree rotation and 0.1 relative position translation) was also considered and tested. However, the same model had 93.2% accuracy on test set therefore the solution was not adapted 
+To test it on your own you can run ```predict_func.py``` script (already covered in point 1.4.2), remember about changing ```samp_photo``` path variable in ```global_vars.py```. 
+
+Abovementioned predict function uses two additional functions for processing real image and also plot the result. 
+
+```python
+def load_real_img(img=samp_photo):
+
+    img = io.imread(img, as_gray=True)
+    img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
+    img = img.reshape(1, IMG_SIZE, IMG_SIZE, 1)
+    img = util.invert(img)
+
+    return img
+```
+
+```python
+def show_img(img=samp_photo, processed=False, real=False, title=""):
+
+    if real:
+
+        if processed:
+            img = io.imread(img, as_gray=True)
+            img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
+            img = (img - 1) * (-1)
+
+            fig = plt.imshow(img, cmap="gray")
+
+        else:
+            img = io.imread(img)
+            fig = plt.imshow(img, cmap="gray")
+
+    else:
+        img = img.reshape((IMG_SIZE, IMG_SIZE))
+
+        fig = plt.imshow(img, cmap="gray")
+
+    plt.axis('off')
+    plt.title(title)
+    fig.axes.get_xaxis().set_visible(False)
+    fig.axes.get_yaxis().set_visible(False)
+```
+
+Let's test it: 
+
+```python
+predict(samp_photo)
+```
+<img src="https://github.com/thepr0blem/tf-zalando/blob/master/images/sample_photo_classification.png" width="400">
+
+Voilà! It worked! 
+
+## 6. Summary 
+
+- estimated model accuracy - 93.3% 
+- based on insightful view presented in confusion matrix, we can conclude that the model misclassifies items with similar shape Examples:  
+  - shirts confused with T-shirts
+  - pullovers confused with shirts 
 
 ### References 
-LINK TO DATA SET 
+[1] https://www.kaggle.com/zalando-research/fashionmnist
+[2] https://pythonprogramming.net/cnn-tensorflow-convolutional-nerual-network-machine-learning-tutorial/
+[3] https://www.kaggle.com/gpreda/cnn-with-tensorflow-keras-for-fashion-mnist
 
