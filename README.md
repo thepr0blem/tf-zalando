@@ -1,5 +1,3 @@
-UNDER CONSTRUCTION
-
 # CNN Implementation using TensorFlow
 
 The purpose of this project is to develop convolutional neural network for items of clothing (fashion-MNIST dataset) classification. 
