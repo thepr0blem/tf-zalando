@@ -8,33 +8,38 @@ from global_vars import *
 
 def load_and_process_data():
 
+    # Load data from csv file
     df_train = pd.read_csv(path_train)
     df_test = pd.read_csv(path_test)
 
+    # Extracting images and labels
     X = df_train.iloc[:, 1:785].values / 255.0
     y = df_train.iloc[:, 0].values
 
+    # Split on training and validation sets
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1, random_state=42)
 
-    X_train = X_train.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS)
-    X_train = np.array(X_train, dtype='f')
+    # Reshaping training set to 4-D array required to CNN input
+    X_train = np.array(X_train.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
 
-    y_train = tf.keras.utils.to_categorical(y_train)
-    y_train = np.array(y_train, dtype='f')
+    # One hot encoding of training labels
+    y_train = np.array(tf.keras.utils.to_categorical(y_train), dtype='f')
 
-    X_val = X_val.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS)
-    X_val = np.array(X_val, dtype='f')
+    # Reshaping validation set to 4-D array required to CNN input
+    X_val = np.array(X_val.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
 
-    y_val = tf.keras.utils.to_categorical(y_val)
-    y_val = np.array(y_val, dtype='f')
+    # One hot encoding of validation labels
+    y_val = np.array(tf.keras.utils.to_categorical(y_val), dtype='f')
 
+    # Extracting images and labels from testing data set
     X_test = df_test.iloc[:, 1:785].values / 255.0
-    X_test = X_test.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS)
-    X_test = np.array(X_test, dtype='f')
-
     y_test = df_test.iloc[:, 0].values
-    y_test = tf.keras.utils.to_categorical(y_test)
-    y_test = np.array(y_test, dtype='f')
+
+    # Reshaping testing set to 4-D array required to CNN input
+    X_test = np.array(X_test.reshape(-1, IMG_SIZE, IMG_SIZE, IMG_CHANNELS), dtype='f')
+
+    # One hot encoding of validation test set labels
+    y_test = np.array(tf.keras.utils.to_categorical(y_test))
 
     return X_train, y_train, X_test, y_test, X_val, y_val
 

@@ -54,8 +54,8 @@ def plot_training_history(train_loss, test_loss, train_accuracy, test_accuracy):
     plt.figure()
     plt.show()
 
-    plt.plot(range(len(train_loss)), train_accuracy, 'b', label='Training Accuracy')
-    plt.plot(range(len(train_loss)), test_accuracy, 'r', label='Test Accuracy')
+    plt.plot(range(len(train_accuracy)), train_accuracy, 'b', label='Training Accuracy')
+    plt.plot(range(len(train_accuracy)), test_accuracy, 'r', label='Test Accuracy')
     plt.title('Training and Test Accuracy')
     plt.xlabel('Epochs ', fontsize=16)
     plt.ylabel('Loss', fontsize=16)
@@ -69,11 +69,8 @@ def plot_samples(X, y, labels):
 
     Args:
         X: (i x IMG_SIZE x IMG_SIZE x 1) array with i examples
-        y: (i x 1) vector with labels
-        n: dict with {class: label} structure
-
-    Returns:
-        Displays n-th example and returns class label.
+        y: (i x 10) vector with labels
+        labels: dict with {class: label} structure
     """
     f, pl_arr = plt.subplots(3, 3)
 
@@ -120,9 +117,14 @@ def display_errors(X, y_true, y_pred, labels):
                                .format(labels[y_pred_errors[n]], labels[y_true_errors[n]]))
 
 
-def plot_classes_count(y_full, label_names):
+def plot_classes_count(y, label_names):
+    """Plots histogram with data set classes count.
 
-    y_classes = [label_names[np.argmax(i)] for i in y_full]
+    Args:
+        y: (i x 10) vector with labels, i - number of examples
+        label_names: dict with {class: label} structure
+    """
+    y_classes = [label_names[np.argmax(i)] for i in y]
 
     sns.set(style="darkgrid")
     count_plot = sns.countplot(y_classes, palette="Blues_d")

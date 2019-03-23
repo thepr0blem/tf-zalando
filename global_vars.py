@@ -12,7 +12,7 @@ model_name = "final"
 path_train = r"./data/fashion-mnist_train.csv"
 path_test = r"./data/fashion-mnist_test.csv"
 
-samp_photo = "sample_photo.jpg"
+samp_photo = r"./images/sample_photo.jpg"
 
 labels_dict = {0: "T-shirt_top",
                1: "Trouser",

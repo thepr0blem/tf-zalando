@@ -111,7 +111,6 @@ def train_and_save_model():
         test_loss = []
         train_accuracy = []
         test_accuracy = []
-        summary_writer = tf.summary.FileWriter('./output', sess.graph)
 
         for i in range(epochs):
             for batch in range(len(X_train)//BATCH_SIZE):
@@ -134,13 +133,13 @@ def train_and_save_model():
             print("Val Accuracy: {:.5f}".format(test_acc))
 
         saver.save(sess, model_path + model_name)
-        summary_writer.close()
         print("Model saved.")
 
         return train_loss, test_loss, train_accuracy, test_accuracy
 
 
 def predict_arr(to_predict):
+    """Load model and return prediction for "to_predict" array. """
 
     tf.reset_default_graph()
     inputs, targets, pred, cost, saver, is_train_mode = build_model()
@@ -155,6 +154,7 @@ def predict_arr(to_predict):
 
 
 def score(X_test, y_test):
+    """Calculate accuracy of the model given X, y data"""
 
     prediction = predict_arr(X_test)
 
@@ -163,25 +163,20 @@ def score(X_test, y_test):
     return 1 - np.mean(prediction != y_test_vec)
 
 
+# plot_samples(X_full, y_full, labels_dict)
+
 # train_loss, test_loss, train_accuracy, test_accuracy = train_and_save_model()
 # plot_training_history(train_loss, test_loss, train_accuracy, test_accuracy)
 
+print("Test set accuracy: ", score(X_test, y_test))
 
 # y_pred = predict_arr(X_test)
 # y_test_cat = np.argmax(y_test, axis=1)
 
-# plot_samples(X_full, y_full, labels_dict)
-
 # conf_mat = confusion_matrix(y_test_cat, y_pred)
 # labels_list = [labels_dict[i] for i in labels_dict]
+
 # plot_conf_mat(conf_mat, labels_list, normalize=False)
 
 # display_errors(X_test, y_test_cat, y_pred, labels_dict)
-
-# print("Test set accuracy: ", score(X_test, y_test))
-
-# TODO:
-#  - add venv i data to gitignore
-#  - push repo to origin
-#  - build a structure for git readme
 

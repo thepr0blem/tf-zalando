@@ -1,0 +1,12 @@
+################################################################
+# Python package requirements for running this project
+################################################################
+# Packages list:
+
+numpy
+matplotlib
+scikit-learn
+scikit-image
+tensorflow
+seaborn
+pandas
