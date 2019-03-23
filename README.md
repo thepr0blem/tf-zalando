@@ -378,35 +378,71 @@ def train_and_save_model():
 ```python
 train_loss, test_loss, train_accuracy, test_accuracy = train_and_save_model()
 ```
+Above reports allow us to plot how loss and accuracy changed across 50 epochs for training and validation data. To plot this we use the following function: 
+
+```python
+def plot_training_history(train_loss, test_loss, train_accuracy, test_accuracy):
+
+    plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
+    plt.plot(range(len(train_loss)), test_loss, 'r', label='Test loss')
+    plt.title('Training and Test loss')
+    plt.xlabel('Epochs ', fontsize=16)
+    plt.ylabel('Loss', fontsize=16)
+    plt.legend()
+    plt.figure()
+    plt.show()
+
+    plt.plot(range(len(train_loss)), train_accuracy, 'b', label='Training Accuracy')
+    plt.plot(range(len(train_loss)), test_accuracy, 'r', label='Test Accuracy')
+    plt.title('Training and Test Accuracy')
+    plt.xlabel('Epochs ', fontsize=16)
+    plt.ylabel('Loss', fontsize=16)
+    plt.legend()
+    plt.figure()
+    plt.show()
+```
+
+<img src="https://github.com/thepr0blem/tf-zalando/blob/master/images/acc.PNG" width="400">
+
+<img src="https://github.com/thepr0blem/tf-zalando/blob/master/images/loss.PNG" width="400">
+
 
 ## 4. Model evaluation
 ### 4.1 Load model and evaluate on test data set 
 
 ```python
-model_1 = keras.models.load_model(r"./models/CNN_FF_1.h5")
-model_2 = keras.models.load_model(r"./models/CNN_FF_2.h5")
-model_3 = keras.models.load_model(r"./models/CNN_FF_3.h5")
+def predict_arr(to_predict):
+    """Load model and return prediction for "to_predict" array. """
+
+    tf.reset_default_graph()
+    inputs, targets, pred, cost, saver, is_train_mode = build_model()
+    predict_op = tf.argmax(pred, 1)
+
+    with tf.Session() as sess:
+
+        saver.restore(sess, model_path + model_name)
+        prediction = sess.run(predict_op, feed_dict={inputs: to_predict, is_train_mode: False})
+
+    return prediction
 ```
 
 ```python
-score_1 = model_1.evaluate(X_test_cnn, y_test_cat_cnn, batch_size=64)
-score_2 = model_2.evaluate(X_test_cnn, y_test_cat_cnn, batch_size=64)
-score_3 = model_3.evaluate(X_test_cnn, y_test_cat_cnn, batch_size=64)
+def score(X_test, y_test):
+    """Calculate accuracy of the model given X, y data"""
+
+    prediction = predict_arr(X_test)
+
+    y_test_vec = np.argmax(y_test, 1)
+
+    return 1 - np.mean(prediction != y_test_vec)
 ```
 
 ```python
-print("Model_1: val_acc - {}".format(np.round(score_1[1] * 100, 2)),
-      "\nModel_2: val_acc - {}".format(np.round(score_2[1] * 100, 2)),
-      "\nModel_3: val_acc - {}".format(np.round(score_3[1] * 100, 2)))
+print("Test set accuracy: ", score(X_test, y_test))
 ```
 ```
-Model_1: val_acc - 94.72% 
-Model_2: val_acc - 95.16% 
-Model_3: val_acc - 95.19%
+Test set accuracy:  0.9329
 ```
-
-Highest accuracy on test set has been identified for **model_3** which is considered as final from now. 
-Its accuracy is estimated on **95.2%**.
 
 ### 4.2 Confusion matrix 
 
