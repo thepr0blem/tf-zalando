@@ -44,6 +44,8 @@ Techniques:
 
 ### 1.3 Dataset overview
 
+Data has been downloaded from [1] in .csv form and stored locally in ```./data``` location.
+
 Observations: 
 - training set is provided in form of dataframe with 784 columns (with pixel values) and one additional column with class labels
 - training dataset consist of 60,000 examples clothing pictures divided into 10 classes
